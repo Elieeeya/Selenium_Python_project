@@ -1,32 +1,26 @@
 import pytest
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import time
 
 
+# Changes UI language through CLI
 def pytest_addoption(parser):
-    parser.addoption('--language', action='store', default="en-gb",
-                     help="Choose language: ar ca cs da de el es fi fr it ko nl pl pt pt-br ro ru sk uk zh-hans en-gb")
+    parser.addoption('--language', action='store', default='--lang=en',
+                     help='Choose language - default is English (UK)')
 
 
 @pytest.fixture(scope="function")
 def browser(request):
-    languages = "ar ca cs da de el es fi fr it ko nl pl pt pt-br ro ru sk uk zh-hans en-gb "
-    language = request.config.getoption("language")
-    if (language + " ") in languages:
-        print("\nstart chrome browser for test..")
-        options = Options()
-        options.add_experimental_option(
-            'prefs', {'intl.accept_languages': language})
-        browser = webdriver.Chrome(options=options)
-    else:
-        print(
-            "\nlanguage {} not supported :(\ntry: ar ca cs da de el es fi fr it ko nl pl pt pt-br ro ru sk uk zh-hans "
-            "en-gb".format(
-                language))
-        pytest.fail("Wrong Language")
-        # assert 0
+    # Changes UI language using Options instance
+    options_set = Options()
+    user_language = request.config.getoption("language")
+    options_set.add_experimental_option('prefs', {'intl.accept_languages': user_language})
+
+    # Launches browser with a set of options
+    print("\nStarting Chrome browser for testing...")
+    browser = webdriver.Chrome(options=options_set)
     yield browser
-    print("\nquit browser..")
+
+    # Closes browser
+    print("\nQuitting browser...")
     browser.quit()
